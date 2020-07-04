@@ -1,0 +1,98 @@
+= New Build Config
+venkatesh@zyobee.com
+v0.1, June 28, 2020: Draft
+:doctype: book
+:reproducible:
+:source-highlighter: rouge
+:listing-caption: Listing
+:pdf-page-size: Letter
+:page-layout: docs
+:description: New Build Config for Ubuntu 20.04 with NVidia Drivers.
+:imagesdir: ./images
+:uri-config: https://github.com/asciidoctor/asciidoctor/blob/master/compat/asciidoc.conf
+:uri-fontawesome: https://fontawesome.com/v4.7.0/
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+:toc:
+:toc-placement!:
+
+== Colophon
+Version: {revnumber}
+: {revdate}
+: {revremark}
+
+== Intro
+New Build config for Ubuntu 20.04
+
+== On every new kernel install
+. Install latest suggested NVidia Drivers
++
+[source, bash]
+====
+ubuntu-drivers devices
+
+sudo ubuntu-drivers autoinstall
+====
+
+. Check driver versions installed 
++
+[source, bash]
+====
+nvidia-smi
+====
+
+. Install Magewell Drivers from http://www.magewell.com/downloads/pro-capture#/driver/linux-x86[here].
+
+.. Change grub config for enabling `nvidia-drm.modeset` . Reference https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting[here]. Add `nvidia-drm.modeset=1` to `/etc/default/grub`. 
+.. Regenerate Grub config
++
+[source, bash]
+====
+grub-mkconfig -o /boot/grub/grub.cfg
+====
+. Multimonitor Setup
+.. Troubleshooting multimonitor config from https://wiki.archlinux.org/index.php/NVIDIA/Troubleshooting#Multi-monitor[here].
+.. Ensure both monitors are at 60Hz from `nvidia-settings`.
+.. Check xorg.conf https://gist.github.com/vsellappa/f95f25b6a50f675d2c4d936e9e5012f5[here]. Note that ForceFullCompositionPipeline must be set for each monitor.
+
+. Check modules loaded at runtime.
++
+[source, bash]
+====
+systemctl status systemd-modules-load
+
+find the pid and 
+
+journalctl -b _PID=<PID>
+====
+.. `v42loopback.conf` is loaded via `/etc/modules-load.d` and `/etc/modprobe.d` (for options of the module to be loaded).
+
+
+. For Error checking. Last boot details
++
+[source, bash]
+====
+journalctl -b
+====
+
+
+
+
+== Steps To Increase Responsiveness
+. Reduce swappiness
++
+Add `vm.swappiness=1` to `/etc/sysctl.conf`. Check current swappiness using : 
++
+[source, bash]
+====
+cat /proc/sys.vm/swappiness
+====
+
+
+
+
