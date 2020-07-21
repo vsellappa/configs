@@ -30,37 +30,54 @@ Version: {revnumber}
 New Build config for Ubuntu 20.04
 
 == On every new kernel install
-. Install latest suggested NVidia Drivers
-+
-[source, bash]
-====
-ubuntu-drivers devices
-
-sudo ubuntu-drivers autoinstall
-====
-
-. Check driver versions installed 
-+
-[source, bash]
-====
-nvidia-smi
-====
-
 . Install Magewell Drivers from http://www.magewell.com/downloads/pro-capture#/driver/linux-x86[here].
 
-.. Change grub config for enabling `nvidia-drm.modeset` . Reference https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting[here]. Add `nvidia-drm.modeset=1` to `/etc/default/grub`. 
+.. Change grub config for enabling `nvidia-drm.modeset` . Reference https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting[here]. 
+.. Add `nvidia-drm.modeset=1` to `/etc/default/grub`. 
 .. Regenerate Grub config
 +
 [source, bash]
 ====
 grub-mkconfig -o /boot/grub/grub.cfg
 ====
+
+. Add the latest `nvidia` drivers by : 
++
+[source, bash]
+====
+sudo add-apt-repository ppa:graphics-drivers/ppa
+
+sudo apt update
+
+sudo apt upgrade
+
+ubuntu-drivers list
+
+sudo apt install nvidia-driver-VERSION_NUMBER_HERE
+====
+
+. Replace `kwin` by `kwin low-latency` for compositing.
++
+[source, bash]
+====
+sudo add-apt-repository ppa:maxiberta/kwin-lowlatency
+
+sudo apt update
+====
+
+. Reboot and check the latest `nvidia` driver version and what is using the GPU
++
+[source, bash]
+====
+nvidia-smi
+====
+
 . Multimonitor Setup
 .. Troubleshooting multimonitor config from https://wiki.archlinux.org/index.php/NVIDIA/Troubleshooting#Multi-monitor[here].
 .. Ensure both monitors are at 60Hz from `nvidia-settings`.
 .. Check xorg.conf https://gist.github.com/vsellappa/f95f25b6a50f675d2c4d936e9e5012f5[here]. Note that ForceFullCompositionPipeline must be set for each monitor.
 
-. Check modules loaded at runtime.
+. Check modules loaded at runtime. (for `v42loopback`)
 +
 [source, bash]
 ====
@@ -72,7 +89,6 @@ journalctl -b _PID=<PID>
 ====
 .. `v42loopback.conf` is loaded via `/etc/modules-load.d` and `/etc/modprobe.d` (for options of the module to be loaded).
 
-
 . For Error checking. Last boot details
 +
 [source, bash]
@@ -80,7 +96,38 @@ journalctl -b _PID=<PID>
 journalctl -b
 ====
 
+== PulseAudio Configuration
 
+. List all the sourcesNOTE
+ce.string -e 'name:'
+====
+
+. List all the sinks
++
+[source, bash]
+====
+pacmd list-sinks | grep -e 'name:' -e 'index:'
+====
+
+. Change the names of the source and sink
++
+[source, bash]
+====
+pacmd update-source-proplist YOURDEVICE device.description=NEWDEVICENAME
+
+pacmd update-sink-proplist YOURDEVICE device.description=NEWDEVICENAME
+====
+
+. To make this permanent on startup , add the below lines to `./config/pulse/default.pa`
++
+[source, bash]
+====
+update-source-proplist YOURDEVICE device.description=NEWDEVICENAME
+
+update-sink-proplist YOURDEVICE device.description=NEWDEVICENAME
+====
++
+WARNING For some reason PulseAudio can be very flaky after adding the above. Makes a screeching noise when connecting Zoom or Meet. 
 
 
 == Steps To Increase Responsiveness
