@@ -30,16 +30,18 @@ Version: {revnumber}
 New Build config for Ubuntu 20.04
 
 == On every new kernel install
-. Install Magewell Drivers from http://www.magewell.com/downloads/pro-capture#/driver/linux-x86[here].
-
-.. Change grub config for enabling `nvidia-drm.modeset` . Reference https://wiki.archlinux.org/index.php/NVIDIA#DRM_kernel_mode_setting[here]. 
-.. Add `nvidia-drm.modeset=1` to `/etc/default/grub`. 
-.. Regenerate Grub config
+. Steps To Increase Responsiveness
+.. Reduce swappiness.
++
+Add `vm.swappiness=1` to `/etc/sysctl.conf`. 
+Check current swappiness using : 
 +
 [source, bash]
 ====
-grub-mkconfig -o /boot/grub/grub.cfg
+cat /proc/sys.vm/swappiness
 ====
+
+. Install Magewell Drivers from http://www.magewell.com/downloads/pro-capture#/driver/linux-x86[here].
 
 . Add the latest `nvidia` drivers by : 
 +
@@ -55,6 +57,20 @@ ubuntu-drivers list
 
 sudo apt install nvidia-driver-VERSION_NUMBER_HERE
 ====
+
+. Configure NVidia Drivers
+.. Enable `nvidia-drm.modeset` via Kernel Module
++
+[source, bash]
+====
+sudo nano /lib/modprobe.d/nvidia-kms.conf
+options nvidia-drm modeset=1
+sudo update-initramfs -u
+====
+.. References
+... https://wiki.archlinux.org/index.php/Kernel_module[Kernel modules]
+... https://unix.stackexchange.com/questions/424599/is-update-initramfs-u-needed-after-adding-or-removing-a-module-with-modprobe[Regenerate kernel module]
+... https://gist.github.com/bitsurgeon/b0f4440984c9e60dcd8fe8bbc346c029[Useful]
 
 . Replace `kwin` by `kwin low-latency` for compositing.
 +
@@ -77,7 +93,7 @@ nvidia-smi
 .. Ensure both monitors are at 60Hz from `nvidia-settings`.
 .. Check xorg.conf https://gist.github.com/vsellappa/f95f25b6a50f675d2c4d936e9e5012f5[here]. Note that ForceFullCompositionPipeline must be set for each monitor.
 
-. Check modules loaded at runtime. (for `v42loopback`)
+. Check modules loaded at runtime
 +
 [source, bash]
 ====
@@ -96,10 +112,31 @@ journalctl -b _PID=<PID>
 journalctl -b
 ====
 
+== KDE configuration
+. konsole config
+.. font : `hack size: 9 regular`
+.. theme : `solarized-dark`
+
+. Eye Candy
+.. Install kvantum engine
++
+[source, bash]
+====
+sudo apt install qt5-style-kvantum qt5-style-kvantum-themes
+====
+.. https://github.com/vinceliuice/Layan-kde[Install `Layan theme`]
+... Read the instructions above carefully
+
+== bash configuration
+. https://github.com/ohmybash/oh-my-bash[Oh-my-bash]
+
 == PulseAudio Configuration
 
-. List all the sourcesNOTE
-ce.string -e 'name:'
+. List all the sources
++
+[source, bash]
+====
+pacmd list-sources | grep -e 'name:' -e 'index:'
 ====
 
 . List all the sinks
@@ -113,9 +150,9 @@ pacmd list-sinks | grep -e 'name:' -e 'index:'
 +
 [source, bash]
 ====
-pacmd update-source-proplist YOURDEVICE device.description=NEWDEVICENAME
+pacmd update-source-proplist <YOURDEVICE> device.description=<NEWDEVICENAME>
 
-pacmd update-sink-proplist YOURDEVICE device.description=NEWDEVICENAME
+pacmd update-sink-proplist <YOURDEVICE> device.description=<NEWDEVICENAME>
 ====
 
 . To make this permanent on startup , add the below lines to `./config/pulse/default.pa`
@@ -127,19 +164,5 @@ update-source-proplist YOURDEVICE device.description=NEWDEVICENAME
 update-sink-proplist YOURDEVICE device.description=NEWDEVICENAME
 ====
 +
-WARNING For some reason PulseAudio can be very flaky after adding the above. Makes a screeching noise when connecting Zoom or Meet. 
-
-
-== Steps To Increase Responsiveness
-. Reduce swappiness
-+
-Add `vm.swappiness=1` to `/etc/sysctl.conf`. Check current swappiness using : 
-+
-[source, bash]
-====
-cat /proc/sys.vm/swappiness
-====
-
-
-
+WARNING: For some reason PulseAudio can be very flaky after adding the above. Makes a screeching noise when connecting Zoom or Meet. 
 
