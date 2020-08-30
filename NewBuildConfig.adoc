@@ -165,4 +165,3 @@ update-sink-proplist YOURDEVICE device.description=NEWDEVICENAME
 ====
 +
 WARNING: For some reason PulseAudio can be very flaky after adding the above. Makes a screeching noise when connecting Zoom or Meet. 
-
